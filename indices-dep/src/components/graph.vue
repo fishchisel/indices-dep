@@ -5,14 +5,14 @@
 
     <div id="buttons">
       <b-button-group class="btn-group-sm">
-        <b-button v-on:click="toggle">{{rendering ? "Stop" : "Start"}}</b-button>
+        <b-button v-on:click="toggle" :disabled=notLoaded>{{rendering ? "Stop" : "Start"}}</b-button>
         <b-button v-on:click="reset">Reset</b-button>
       </b-button-group>
       <b-button-group class="btn-group-sm">
-        <b-button>None</b-button>
-        <b-button>Asset Class</b-button>
-        <b-button>Owner</b-button>
-        <b-button>Index Type</b-button>
+        <b-button @click="format('none')">None</b-button>
+        <b-button @click="format('assetClass')">Asset Class</b-button>
+        <b-button @click="format('owner')">Owner</b-button>
+        <b-button  @click="format('indexType')">Index Type</b-button>
       </b-button-group>
     </div>
   </div>  
@@ -26,7 +26,8 @@ export default {
   name: 'Graph',
   data () {
     return {
-      rendering: false
+      rendering: false,
+      notLoaded: true,
     }
   },
   methods: {
@@ -35,12 +36,19 @@ export default {
     },
     reset () {
       viva.reset()
+    },
+    format(type) {
+      viva.setOverlay(type)
     }
   },
   mounted () {
     load().then(data => {
+      this.notLoaded = false;
+      for(let index of data.nodes) {
+        index.owner = Math.random().toString();
+      }
+
       viva.init(data, 'graphDiv')
-      //viva.start()
     });
   }
 }
