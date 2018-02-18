@@ -1,0 +1,2 @@
+*.csv
+!*.stub.csv

@@ -1,0 +1,10 @@
+indexId, name, assetClass, owner, type
+1, "Index A", "Asset Class B", "Owner X", "Type E"
+2, "Index B", "Asset Class B", "Owner Y", "Type D"
+3, "Index C", "Asset Class B", "Owner X", "Type D"
+4, "Index D", "Asset Class B", "Owner Y", "Type C"
+5, "Index E", "Asset Class B", "Owner X", "Type C"
+6, "Index F", "Asset Class A", "Owner Y", "Type B"
+7, "Index G", "Asset Class A", "Owner X", "Type B"
+8, "Index H", "Asset Class A", "Owner Y", "Type A"
+9, "Index I", "Asset Class A", "Owner X", "Type A"
