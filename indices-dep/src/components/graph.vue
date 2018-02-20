@@ -12,8 +12,17 @@
         <b-button @click="format('none')">None</b-button>
         <b-button @click="format('assetClass')">Asset Class</b-button>
         <b-button @click="format('owner')">Owner</b-button>
-        <b-button  @click="format('indexType')">Index Type</b-button>
+        <b-button  @click="format('type')">Index Type</b-button>
       </b-button-group>
+    </div>
+
+    <div id="info" class="card" v-if="node.indexId">
+      <span v-bind:class="{'font-weight-bold': selected }">{{node.indexId}}</span>
+      <span v-bind:class="{'font-weight-bold': selected }">{{node.name}}</span>
+      {{node.owner}}<br />
+      {{node.type}}<br />
+      {{node.class}}
+      <a href="#" class="card-link" v-if="selected" @click="remove()">Remove</a>
     </div>
   </div>  
 </template>
@@ -28,6 +37,8 @@ export default {
     return {
       rendering: false,
       notLoaded: true,
+      node: {},
+      selected: false
     }
   },
   methods: {
@@ -39,16 +50,27 @@ export default {
     },
     format(type) {
       viva.setOverlay(type)
+    },
+    remove() {
+      viva.remove(this.node.indexId);
     }
   },
   mounted () {
+    //$('#graphDiv').click(arg => this.selected = false);
+
     load().then(data => {
       this.notLoaded = false;
-      for(let index of data.nodes) {
-        index.owner = Math.random().toString();
-      }
-
-      viva.init(data, 'graphDiv')
+      let evts = viva.init(data, 'graphDiv');
+      
+      evts
+        .click(arg => {
+          this.node = arg.data
+          this.selected = true
+        })
+        .mouseEnter(arg => { 
+          if (!this.selected) this.node = arg.data
+        })
+        .noclick(arg => this.selected = false)
     });
   }
 }
@@ -79,10 +101,17 @@ a {
 }
 #buttons {
   position: fixed;
-  top:0;
-  left:0;
+  top:2px;
+  left:2px;
 }
 
+#info {
+  position: fixed;
+  right:2px;
+  top:2px;
+  padding:4px;
+  text-align: right;
+}
 </style>
 
 <style>

@@ -21,6 +21,7 @@ function webglInputEvents(webglGraphics) {
     mouseMoveCallback = [],
     clickCallback = [],
     dblClickCallback = [],
+    noclickCallback = [],
     prevSelectStart,
     boundRect;
 
@@ -35,6 +36,7 @@ function webglInputEvents(webglGraphics) {
     mouseMove: mouseMove,
     click: click,
     dblClick: dblClick,
+    noclick: noclick,
     mouseCapture: mouseCapture,
     releaseMouseCapture: releaseMouseCapture
   };
@@ -62,6 +64,13 @@ function webglInputEvents(webglGraphics) {
   function click(callback) {
     if (typeof callback === 'function') {
       clickCallback.push(callback);
+    }
+    return api;
+  }
+
+  function noclick(callback) {
+    if (typeof callback === 'function') {
+      noclickCallback.push(callback);
     }
     return api;
   }
@@ -252,6 +261,9 @@ function webglInputEvents(webglGraphics) {
           if (invoke(mouseUpCallback, args)) {
             stopPropagation(e);
           }
+        }
+        else {
+          invoke(noclickCallback, args);
         }
       });
   }

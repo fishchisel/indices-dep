@@ -1,6 +1,8 @@
 import Viva from 'vivagraphjs'
 import webglGraphics from './webglGraphics/View/webglGraphics'
 import stringToRgba from './stringToRgba'
+import webGlInputEvents from './webglGraphics/WebGL/webglInputEvents'
+import Renderer from './webglGraphics/View/renderer'
 
 let graph = null;
 let graphics = null;
@@ -13,8 +15,8 @@ function init (data, elmName) {
 
   var layout = Viva.Graph.Layout.forceDirected(graph, {
     springLength : 80,
-    springCoeff : 0.0002,
-    theta: 0.9, // higher means faster, ubt less accurate
+    springCoeff : 0.0006,
+    theta: 0.95, // higher means faster, ubt less accurate
     dragCoeff: 0.04
     //dragCoeff : 0.02,
     //gravity : -0.1
@@ -33,13 +35,18 @@ function init (data, elmName) {
     //formatNode: node => ({size: 10, color: node.data.color})
   })
 
-  renderer = Viva.Graph.View.renderer(graph, {
+  var evts = webGlInputEvents(graphics);
+
+  renderer = Renderer(graph, {
     container: document.getElementById(elmName),
     graphics: graphics,
-    layout: layout
+    layout: layout,
+    zoomSpeed: 0.7
   });
 
   addData(graph, data)
+
+  return evts;
 }
 
 function addData (graph, data) {
@@ -74,9 +81,14 @@ function setOverlay(type) {
   });
 }
 
+function remove(indexId) {
+  graph.removeNode(indexId)
+}
+
 export default {
   init: init,
   toggle: toggle,
   reset: reset,
-  setOverlay: setOverlay
+  setOverlay: setOverlay,
+  remove: remove
 }
