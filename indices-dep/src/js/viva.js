@@ -4,6 +4,10 @@ import stringToRgba from './stringToRgba'
 import webGlInputEvents from './webglGraphics/WebGL/webglInputEvents'
 import Renderer from './webglGraphics/View/renderer'
 
+import primitives from 'ngraph.physics.primitives'
+
+import dragForce from './dragForceOverride'
+
 let graph = null;
 let graphics = null;
 let renderer = null;
@@ -15,11 +19,13 @@ function init (data, elmName) {
 
   var layout = Viva.Graph.Layout.forceDirected(graph, {
     springLength : 80,
-    springCoeff : 0.0006,
+    springCoeff : 0.0008,
     theta: 0.95, // higher means faster, ubt less accurate
-    dragCoeff: 0.04
+    dragCoeff: 0.04,
     //dragCoeff : 0.02,
-    //gravity : -0.1
+    //gravity : -0.1,
+
+    createDragForce: dragForce
   });
 
 //   var layout = Viva.Graph.Layout.forceDirected(graph, {
@@ -32,7 +38,7 @@ function init (data, elmName) {
 // });
 
   graphics = webglGraphics({
-    //formatNode: node => ({size: 10, color: node.data.color})
+    formatNode:  node => ({size: 15, color: 0x009ee8ff})
   })
 
   var evts = webGlInputEvents(graphics);
@@ -43,6 +49,8 @@ function init (data, elmName) {
     layout: layout,
     zoomSpeed: 0.7
   });
+
+
 
   addData(graph, data)
 
@@ -85,10 +93,18 @@ function remove(indexId) {
   graph.removeNode(indexId)
 }
 
+function removeMulti(indexIds) {
+  graph.beginUpdate();
+  for (let id of indexIds)
+    graph.removeNode(id)
+  graph.endUpdate();
+}
+
 export default {
   init: init,
   toggle: toggle,
   reset: reset,
   setOverlay: setOverlay,
-  remove: remove
+  remove: remove,
+  removeMulti: removeMulti
 }

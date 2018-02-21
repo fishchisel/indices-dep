@@ -4,16 +4,29 @@
     </div>
 
     <div id="buttons">
-      <b-button-group class="btn-group-sm">
-        <b-button v-on:click="toggle" :disabled=notLoaded>{{rendering ? "Stop" : "Start"}}</b-button>
-        <b-button v-on:click="reset">Reset</b-button>
-      </b-button-group>
-      <b-button-group class="btn-group-sm">
-        <b-button @click="format('none')">None</b-button>
-        <b-button @click="format('assetClass')">Asset Class</b-button>
-        <b-button @click="format('owner')">Owner</b-button>
-        <b-button  @click="format('type')">Index Type</b-button>
-      </b-button-group>
+      <div class="btn-toolbar mr-2" role="toolbar">
+        <b-button-group class="btn-group-sm mr-2">
+          <b-button v-on:click="toggle" :disabled=notLoaded>{{rendering ? "Stop" : "Start"}}</b-button>
+          <!-- <b-button v-on:click="reset">Reset</b-button> -->
+        </b-button-group>
+        <b-button-group class="btn-group-sm mr-2">
+          <b-button @click="format('none')">None</b-button>
+          <b-button @click="format('assetClass')">Asset Class</b-button>
+          <b-button @click="format('owner')">Owner</b-button>
+          <b-button  @click="format('type')">Index Type</b-button>
+        </b-button-group>
+
+        <b-button-group class="btn-group-sm mr-2">
+          <b-button @click="play('2018-02-08')">Play 8th Feb</b-button>
+          <b-button @click="play('2018-02-09')">Play 9th Feb</b-button>
+          <b-button @click="stopPlay()">Stop</b-button>
+        </b-button-group>
+      </div>
+    </div>
+
+    <div id="calc-status" v-if="currTime">
+      Time: {{currTimeDisplay}}<br />
+      Calculated: {{calculated}} / {{tot}}
     </div>
 
     <div id="info" class="card" v-if="node.indexId">
@@ -21,7 +34,7 @@
       <span v-bind:class="{'font-weight-bold': selected }">{{node.name}}</span>
       {{node.owner}}<br />
       {{node.type}}<br />
-      {{node.class}}
+      {{node.assetClass}}
       <a href="#" class="card-link" v-if="selected" @click="remove()">Remove</a>
     </div>
   </div>  
@@ -30,6 +43,8 @@
 <script>
 import load from '../js/data.js'
 import viva from '../js/viva.js'
+import dataPlay from '../js/dataPlay'
+import dateFormat from 'dateformat'
 
 export default {
   name: 'Graph',
@@ -38,7 +53,12 @@ export default {
       rendering: false,
       notLoaded: true,
       node: {},
-      selected: false
+      selected: false,
+      currTime: null,
+      currTimeDisplay: null,
+      setIntervalHandle: null,
+      calculated: 0,
+      tot: 0
     }
   },
   methods: {
@@ -53,6 +73,33 @@ export default {
     },
     remove() {
       viva.remove(this.node.indexId);
+    },
+    play(dateStamp) {
+      this.currTime = new Date(dateStamp);
+      this.currTimeDisplay = dateFormat(this.currTime, 'yyyy-mm-dd HH:MM:ss')
+      this.tot = dataPlay.getTotalIndices(dateStamp);
+
+      let lastTime = this.currTime;
+      let ids = dataPlay.getIdsBetween(dateStamp, new Date('2000-01-01'), this.currTime);
+      viva.removeMulti(ids);
+      this.calculated += ids.length;
+      let that = this;
+      let handle = window.setInterval(() => {
+        lastTime = new Date(that.currTime.getTime());
+        that.currTime.setMinutes(that.currTime.getMinutes() + 10);
+        let ids = dataPlay.getIdsBetween(dateStamp, lastTime, that.currTime);
+        that.currTimeDisplay = dateFormat(that.currTime, 'yyyy-mm-dd HH:MM:ss')
+        this.calculated += ids.length;
+        viva.removeMulti(ids);
+      }, 1000);
+
+      this.setIntervalHandle = handle;
+    },
+    stopPlay() {
+      window.clearInterval(this.setIntervalHandle);
+      this.currTime = null;
+
+      this.setIntervalHandle = null;
     }
   },
   mounted () {
@@ -71,6 +118,8 @@ export default {
           if (!this.selected) this.node = arg.data
         })
         .noclick(arg => this.selected = false)
+
+      dataPlay.setData(data.calcTimes);
     });
   }
 }
@@ -101,16 +150,25 @@ a {
 }
 #buttons {
   position: fixed;
-  top:2px;
-  left:2px;
+  top:0.5rem;
+  left:0.5rem;
 }
 
 #info {
   position: fixed;
-  right:2px;
-  top:2px;
+  right:0.5rem;
+  top:0.5rem;
   padding:4px;
   text-align: right;
+}
+
+#calc-status {
+  position: fixed;
+  right:50%;
+  top:5%;
+  text-align: center;
+  font-weight: bold;
+  font-size: larger;
 }
 </style>
 
